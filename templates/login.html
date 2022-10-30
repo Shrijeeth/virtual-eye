@@ -1,0 +1,78 @@
+<html>
+<head>
+	<title>VirtualEye-LifeGuard For Swimming Pools To Detect Active Drowning</title>
+	<link rel="stylesheet" type="text/css" href="../static/css/login.css">
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+	<!-- jQuery library -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+	<!-- Latest compiled JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+<header class="header">
+	<nav class="navbar navbar-style">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#micon">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a href="/"><img class="logo" src="../static/images/eye.jpg"></a>
+			</div>
+			<div class="collapse navbar-collapse" id="micon">
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="/">Home</a></li>
+					<li><a href="/login">Login</a></li>
+					<li><a href="/register">Register</a></li>
+					<li><a href="">Demo</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+	{% if success_message %}
+	<div class="alert alert-success justify-content-center align-items-center text-center" role="alert">
+            {{ success_message }}
+	</div>
+	{% endif %}
+
+	{% if alert_message %}
+	<div class="alert alert-danger justify-content-center align-items-center text-center" role="alert">
+            {{ alert_message }}
+	</div>
+	{% endif %}
+
+	<div class="container">
+        <br/> <br/> <br/> <br/> <br/> <br/> <br/> <br/>
+		<div class="row h-100 d-flex justify-content-center align-items-center">
+			<div class="form-group col-md-4 col-md-offset-4">
+				<form class="contact-form" method="post" action="/login">
+					<h5 class="title">LOGIN</h5> <br/> <br/>
+					<div class="form-group mb-3">
+						<input type="email" class="form-control rounded border-white mb-3 form-input" id="email" placeholder="Email" name="email">
+					</div> <br/>
+					<div class="form-group mb-3">
+						<input type="password" class="form-control rounded border-white mb-3 form-input" id="password" placeholder="Password" name="password">
+					</div> <br/>
+                    <div class="form-group submit-button-wrapper">
+                        <input type="submit" value="Submit">
+                    </div> <br/>
+                    <div class="form-group mb-3">
+                        <a class="btnLink" href="/forgot_password">Forgot your password?</a>
+                    </div>
+                    <div class="form-group mb-3">
+                        <span>Don't have an account? <a class="btnLink" href="/register">Register</a></span>
+                    </div>
+				</form>
+			</div>
+		</div>
+	</div>
+</header>
+</body>
+</html>
+        
