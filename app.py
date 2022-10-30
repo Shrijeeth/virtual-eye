@@ -10,12 +10,12 @@ app = Flask(__name__)
 
 
 service = CloudantV1.new_instance()
-user_id = int(service.get_database_information(db="user").get_result()['doc_count']) + 1
+user_id = int(service.get_database_information(db=os.getenv("USER_DB")).get_result()['doc_count']) + 1
 
 
 def user_exists(email_id):
     query = {"email": email_id}
-    result = service.post_find("user", selector=query).get_result()['docs']
+    result = service.post_find(os.getenv("USER_DB"), selector=query).get_result()['docs']
     return len(result) == 1, result
 
 
@@ -63,7 +63,7 @@ def register():
             exist, _ = user_exists(email)
             if exist:
                 return render_template("login.html", alert_message="User already exists, Please Login")
-            response = service.put_document(db="user", document=user_data, doc_id=str(user_id))
+            response = service.put_document(db=os.getenv("USER_DB"), document=user_data, doc_id=str(user_id))
             if response:
                 user_id += 1
                 return render_template("login.html", success_message="Registration Success")
