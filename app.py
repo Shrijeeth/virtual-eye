@@ -3,6 +3,8 @@ from ibmcloudant.cloudant_v1 import CloudantV1, Document
 import hashlib
 import os
 from dotenv import load_dotenv
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, To, Email
 
 
 load_dotenv("./.env")
@@ -30,6 +32,22 @@ def hash_password(email, password):
         hash_text(email, os.getenv("VIRTUAL_EYE_START_SALT"), os.getenv("VIRTUAL_EYE_END_SALT")),
         hash_text(email, os.getenv("VIRTUAL_EYE_START_SALT"), os.getenv("VIRTUAL_EYE_END_SALT"))
     )
+
+
+def send_mail(template_id, email, username):
+    from_email = Email(email=os.getenv("SENDGRID_FROM_MAIL"))
+    to_emails = [To(email=email, dynamic_template_data={"first_name": username})]
+    message = Mail(from_email=from_email, to_emails=to_emails)
+    message.template_id = template_id
+    try:
+        sendgrid_client = SendGridAPIClient(os.getenv("SENDGRID_APIKEY"))
+        response = sendgrid_client.send(message)
+        print(response.status_code)
+        return response.status_code == 202
+    except Exception as e:
+        print(e)
+        return False
+
 
 @app.route("/")
 def index():
@@ -66,6 +84,9 @@ def register():
             response = service.put_document(db=os.getenv("USER_DB"), document=user_data, doc_id=str(user_id))
             if response:
                 user_id += 1
+                result = send_mail(os.getenv("SENDGRID_REGISTER_TEMPLATE_ID"), email, username)
+                if not result:
+                    result = send_mail(os.getenv("SENDGRID_REGISTER_TEMPLATE_ID"), email, username)
                 return render_template("login.html", success_message="Registration Success")
             render_template("register.html", alert_message="Registration Failure, Please try again")
         return render_template("register.html", alert_message="Passwords does not match")
