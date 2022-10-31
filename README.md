@@ -30,8 +30,9 @@ Now create environment file (.env file) in your project directory. It should con
 - VIRTUAL_EYE_END_SALT
 - User_DB
 - SENDGRID_APIKEY
-- SENDGRID_REGISTER_TEMPLATE_ID
 - SENDGRID_FROM_MAIL
+- SENDGRID_REGISTER_TEMPLATE_ID
+- SENDGRID_FORGOT_PASSWORD_TEMPLATE_ID
 
 Sample of .env file is given below :
 ```
@@ -43,8 +44,9 @@ VIRTUAL_EYE_START_SALT=sample1
 VIRTUAL_EYE_END_SALT=sample2
 USER_DB=<Your Cloudant DB User Database name>
 SENDGRID_APIKEY=<Your SendGrid API key>
-SENDGRID_REGISTER_TEMPLATE_ID=<Your SendGrid Dynamic Template ID for Registration Success Mail>
 SENDGRID_FROM_MAIL=<Your SendGrid Authorized Sender Mail ID>
+SENDGRID_REGISTER_TEMPLATE_ID=<Your SendGrid Dynamic Template ID for Registration Success Mail>
+SENDGRID_FORGOT_PASSWORD_TEMPLATE_ID=<Your SendGrid Dynamic Template ID for Forgot Password Mail>
 ```
 
 ## Usage Instructions
