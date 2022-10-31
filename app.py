@@ -1,14 +1,20 @@
 from flask import Flask, render_template, request
+from flask_caching import Cache
 from ibmcloudant.cloudant_v1 import CloudantV1, Document
 import hashlib
 import os
 from dotenv import load_dotenv
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, To, Email
+import string
+import random
 
 
 load_dotenv("./.env")
 app = Flask(__name__)
+app.config["SECRET_KEY"] = "r3qwrqweqq2r324ewf"
+app.config["CACHE_TYPE"] = "SimpleCache"
+cache = Cache(app)
 
 
 service = CloudantV1.new_instance()
@@ -34,11 +40,11 @@ def hash_password(email, password):
     )
 
 
-def send_mail(template_id, email, username):
+def send_registration_mail(email, username):
     from_email = Email(email=os.getenv("SENDGRID_FROM_MAIL"))
     to_emails = [To(email=email, dynamic_template_data={"first_name": username})]
     message = Mail(from_email=from_email, to_emails=to_emails)
-    message.template_id = template_id
+    message.template_id = os.getenv("SENDGRID_REGISTER_TEMPLATE_ID")
     try:
         sendgrid_client = SendGridAPIClient(os.getenv("SENDGRID_APIKEY"))
         response = sendgrid_client.send(message)
@@ -46,6 +52,25 @@ def send_mail(template_id, email, username):
     except Exception as e:
         print(e)
         return False
+
+
+def send_forgot_password_mail(email, pass_code):
+    from_email = Email(email=os.getenv("SENDGRID_FROM_MAIL"))
+    to_emails = [To(email=email, dynamic_template_data={"password_code": pass_code})]
+    message = Mail(from_email=from_email, to_emails=to_emails)
+    message.template_id = os.getenv("SENDGRID_FORGOT_PASSWORD_TEMPLATE_ID")
+    try:
+        sendgrid_client = SendGridAPIClient(os.getenv("SENDGRID_APIKEY"))
+        response = sendgrid_client.send(message)
+        return response.status_code == 202
+    except Exception as e:
+        print(e)
+        return False
+
+
+def generate_passcode():
+    code = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=6))
+    return str(code)
 
 
 @app.route("/")
@@ -83,13 +108,49 @@ def register():
             response = service.put_document(db=os.getenv("USER_DB"), document=user_data, doc_id=str(user_id))
             if response:
                 user_id += 1
-                result = send_mail(os.getenv("SENDGRID_REGISTER_TEMPLATE_ID"), email, username)
+                result = send_registration_mail(email, username)
                 if not result:
-                    result = send_mail(os.getenv("SENDGRID_REGISTER_TEMPLATE_ID"), email, username)
+                    result = send_registration_mail(email, username)
                 return render_template("login.html", success_message="Registration Success")
             render_template("register.html", alert_message="Registration Failure, Please try again")
         return render_template("register.html", alert_message="Passwords does not match")
     return render_template("register.html")
+
+
+@app.route("/forgot_password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form.get("email")
+        pass_code = request.form.get("password_code")
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+        if new_password:
+            new_password = hash_password(email, new_password)
+        if confirm_password:
+            confirm_password = hash_password(email, confirm_password)
+        if not pass_code:
+            exist, _ = user_exists(email)
+            if exist:
+                original_code = generate_passcode()
+                result = send_forgot_password_mail(email, original_code)
+                if not result:
+                    result = send_forgot_password_mail(email, original_code)
+                cache.set(email, original_code)
+                return render_template("forgot_password.html", success_message="Verification Code sent to your email", email=email)
+            return render_template("forgot_password.html", alert_message="Invalid User")
+        original_code = cache.get(email)
+        cache.delete(email)
+        if original_code != pass_code:
+            return render_template("forgot_password.html", alert_message="Invalid Verification Code")
+        if new_password == confirm_password:
+            _, user = user_exists(email)
+            user_data = Document(id=user[0]["_id"], rev=user[0]["_rev"], username=user[0]["username"], email=user[0]["email"], password=new_password)
+            response = service.post_document(db=os.getenv("USER_DB"), document=user_data)
+            if response:
+                return render_template("login.html", success_message="Password Changed Successfully")
+            return render_template("forgot_password.html", alert_message="Password Change Failed, Please try again")
+        return render_template("forgot_password.html", alert_message="Passwords does not match")
+    return render_template("forgot_password.html")
 
 
 if __name__ == '__main__':
