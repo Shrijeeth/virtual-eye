@@ -35,36 +35,46 @@
 		</div>
 	</nav>
 
-	{% if alert_message %}
-	<div class="alert alert-danger justify-content-center align-items-center text-center" role="alert">
-            {{ alert_message }}
-	</div>
-	{% endif %}
-
 	<div class="container">
-        <br/> <br/> <br/> <br/> <br/> <br/> <br/>
+		<br/> <br/> <br/> <br/> <br/> <br/> <br/>
 		<div class="row h-100 d-flex justify-content-center align-items-center">
 			<div class="form-group col-md-4 col-md-offset-4">
 				<form class="contact-form" method="post" action="/register">
-					<h5 class="title">REGISTER</h5> <br/> <br/>
-                    <div class="mb-3">
-                        <input type="text" class="form-control rounded border-white mb-3 form-input" id="name" placeholder="Name" name="username" required>
-                    </div> <br/>
+					<h5 class="title">REGISTER</h5> <br/>
+					{% if alert_message %}
+					<br/>
+					<div class="alert alert-danger justify-content-center align-items-center text-center" role="alert">
+						{{ alert_message }}
+					</div>
+					{% endif %}
+					<br/>
 					<div class="mb-3">
-						<input type="email" class="form-control rounded border-white mb-3 form-input" id="email" placeholder="Email" name="email" required>
-					</div> <br/>
+						<input type="text" class="form-control rounded border-white mb-3 form-input" id="name"
+						       placeholder="Name" name="username" required>
+					</div>
+					<br/>
 					<div class="mb-3">
-						<input type="password" class="form-control rounded border-white mb-3 form-input" id="password" placeholder="Password" name="password" required>
-					</div> <br/>
-                    <div class="mb-3">
-						<input type="password" class="form-control rounded border-white mb-3 form-input" id="confirm_password" placeholder="Confirm Password" name="confirm_password" required>
-					</div> <br/>
-                    <div class="submit-button-wrapper">
-                        <input type="submit" value="Submit">
-                    </div> <br/>
+						<input type="email" class="form-control rounded border-white mb-3 form-input" id="email"
+						       placeholder="Email" name="email" required>
+					</div>
+					<br/>
+					<div class="mb-3">
+						<input type="password" class="form-control rounded border-white mb-3 form-input" id="password"
+						       placeholder="Password" name="password" required>
+					</div>
+					<br/>
+					<div class="mb-3">
+						<input type="password" class="form-control rounded border-white mb-3 form-input"
+						       id="confirm_password" placeholder="Confirm Password" name="confirm_password" required>
+					</div>
+					<br/>
+					<div class="submit-button-wrapper">
+						<input type="submit" value="Submit">
+					</div>
+					<br/>
 					<div class="form-group mb-3">
-                        <span>Already have an account? <a class="btnLink" href="/login">Login</a></span>
-                    </div>
+						<span>Already have an account? <a class="btnLink" href="/login">Login</a></span>
+					</div>
 				</form>
 			</div>
 		</div>

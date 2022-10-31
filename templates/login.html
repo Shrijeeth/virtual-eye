@@ -35,39 +35,46 @@
 		</div>
 	</nav>
 
-	{% if success_message %}
-	<div class="alert alert-success justify-content-center align-items-center text-center" role="alert">
-            {{ success_message }}
-	</div>
-	{% endif %}
-
-	{% if alert_message %}
-	<div class="alert alert-danger justify-content-center align-items-center text-center" role="alert">
-            {{ alert_message }}
-	</div>
-	{% endif %}
-
 	<div class="container">
-        <br/> <br/> <br/> <br/> <br/> <br/> <br/> <br/>
+		<br/> <br/> <br/> <br/> <br/> <br/> <br/> <br/>
 		<div class="row h-100 d-flex justify-content-center align-items-center">
 			<div class="form-group col-md-4 col-md-offset-4">
 				<form class="contact-form" method="post" action="/login">
-					<h5 class="title">LOGIN</h5> <br/> <br/>
+					<h5 class="title">LOGIN</h5><br/>
+					{% if success_message %}
+					<br/>
+					<div class="alert alert-success justify-content-center align-items-center text-center" role="alert">
+						{{ success_message }}
+					</div>
+					{% endif %}
+
+					{% if alert_message %}
+					<br/>
+					<div class="alert alert-danger justify-content-center align-items-center text-center" role="alert">
+						{{ alert_message }}
+					</div>
+					{% endif %}
+					<br/>
 					<div class="form-group mb-3">
-						<input type="email" class="form-control rounded border-white mb-3 form-input" id="email" placeholder="Email" name="email">
-					</div> <br/>
+						<input type="email" class="form-control rounded border-white mb-3 form-input" id="email"
+						       placeholder="Email" name="email">
+					</div>
+					<br/>
 					<div class="form-group mb-3">
-						<input type="password" class="form-control rounded border-white mb-3 form-input" id="password" placeholder="Password" name="password">
-					</div> <br/>
-                    <div class="form-group submit-button-wrapper">
-                        <input type="submit" value="Submit">
-                    </div> <br/>
-                    <div class="form-group mb-3">
-                        <a class="btnLink" href="/forgot_password">Forgot your password?</a>
-                    </div>
-                    <div class="form-group mb-3">
-                        <span>Don't have an account? <a class="btnLink" href="/register">Register</a></span>
-                    </div>
+						<input type="password" class="form-control rounded border-white mb-3 form-input" id="password"
+						       placeholder="Password" name="password">
+					</div>
+					<br/>
+					<div class="form-group submit-button-wrapper">
+						<input type="submit" value="Submit">
+					</div>
+					<br/>
+					<div class="form-group mb-3">
+						<a class="btnLink" href="/forgot_password">Forgot your password?</a>
+					</div>
+					<div class="form-group mb-3">
+						<span>Don't have an account? <a class="btnLink" href="/register">Register</a></span>
+					</div>
 				</form>
 			</div>
 		</div>
