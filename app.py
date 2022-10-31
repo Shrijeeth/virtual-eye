@@ -42,7 +42,6 @@ def send_mail(template_id, email, username):
     try:
         sendgrid_client = SendGridAPIClient(os.getenv("SENDGRID_APIKEY"))
         response = sendgrid_client.send(message)
-        print(response.status_code)
         return response.status_code == 202
     except Exception as e:
         print(e)
