@@ -8,6 +8,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, To, Email
 import string
 import random
+import torch
 
 
 load_dotenv("./.env")
@@ -19,6 +20,7 @@ cache = Cache(app)
 
 service = CloudantV1.new_instance()
 user_id = int(service.get_database_information(db=os.getenv("USER_DB")).get_result()['doc_count']) + 1
+model = torch.hub.load("ultralytics/yolov5", "yolov5m")
 
 
 def user_exists(email_id):
@@ -71,6 +73,15 @@ def send_forgot_password_mail(email, pass_code):
 def generate_passcode():
     code = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=6))
     return str(code)
+
+
+def detect_person(image):
+    detection_results = model(image)
+    persons = []
+    for detections in detection_results.xyxy[0]:
+        if detections[-1] == 0:
+            persons.append(detections[:-1])
+    return persons
 
 
 @app.route("/")
