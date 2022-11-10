@@ -169,5 +169,10 @@ def prediction():
     return render_template("prediction.html")
 
 
+@app.route("/logout")
+def logout():
+    return render_template("logout.html")
+
+
 if __name__ == '__main__':
     app.run()
