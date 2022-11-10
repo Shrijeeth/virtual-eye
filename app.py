@@ -1,3 +1,4 @@
+import datetime
 from flask import Flask, render_template, request, redirect, session, url_for
 from flask_caching import Cache
 from ibmcloudant.cloudant_v1 import CloudantV1, Document
@@ -9,6 +10,11 @@ from sendgrid.helpers.mail import Mail, To, Email
 import string
 import random
 import torch
+import cv2
+import time
+import numpy as np
+from playsound import playsound
+import matplotlib.pyplot as plt
 
 
 load_dotenv("./.env")
@@ -82,6 +88,15 @@ def detect_person(image):
         if detections[-1] == 0:
             persons.append(detections[:-1])
     return persons
+
+
+def is_above_threshold(person_bbox, center0, threshold=10):
+    center = [(person_bbox[0] + person_bbox[2]) / 2, (person_bbox[1] + person_bbox[3]) / 2]
+    hmov = abs(center[0] - center0[0])
+    vmov = abs(center[1] - center0[1])
+    if (hmov > threshold) or (vmov > threshold):
+        return True, center
+    return False, center
 
 
 @app.route("/")
@@ -165,8 +180,54 @@ def forgot_password():
     return render_template("forgot_password.html")
 
 
-@app.route("/prediction")
+@app.route("/prediction", methods=["GET", "POST"])
 def prediction():
+    if request.method == "POST":
+        webcam = cv2.VideoCapture("sample_drowning.mp4")
+        if not webcam.isOpened():
+            print("Could not open webcam")
+            return redirect(url_for("login", alert_message="Webcam Not detected! Please Try after sometime"))
+        t0 = dict()
+        isDrowning = dict()
+        center0 = dict()
+        center = dict()
+        start = time.time()
+        while webcam.isOpened():
+            limit = time.time() - start
+            status, frame = webcam.read()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame = cv2.resize(frame, (640, 640))
+            persons = detect_person(frame)
+            for ind,person in enumerate(persons):
+                person = list(map(int, person.cpu().numpy().round().tolist()))
+                if limit % 60 == 0:
+                    t0[ind] = time.time()
+                    isDrowning[ind] = False
+                    center0[ind] = [0, 0]
+                bbox = person.copy()
+                x = time.time()
+                aboveThresh, center = is_above_threshold(bbox, center0[ind])
+                if aboveThresh:
+                    t0[ind] = time.time()
+                    isDrowning[ind] = False
+                else:
+                    if time.time() - t0[ind] > 10:
+                        isDrowning[ind] = True
+                center0[ind] = center
+                start_point = (person[0], person[1])
+                end_point = (person[2], person[3])
+                if isDrowning[ind]:
+                    color = (255, 0, 0)
+                else:
+                    color = (0, 0, 255)
+                thickness = 2
+                frame = cv2.rectangle(frame, start_point, end_point, color, thickness)
+                plt.imshow(frame)
+                plt.savefig("./static/prediction/drowning.png")
+            for person_id, drown_status in isDrowning.items():
+                if drown_status:
+                    print(f"Drowning Detected on {datetime.datetime.now()}")
+                    playsound("./static/sounds/alarm.mp3.wav")
     if session.get('username'):
         return render_template("prediction.html", username=session['username'])
     return redirect("/login")
