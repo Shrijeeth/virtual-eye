@@ -88,3 +88,22 @@ color: darkslateblue;
 .row {
     display: flex;
 }
+
+.submit-button-wrapper {
+  text-align: center;
+}
+
+.submit-button-wrapper input {
+  border: none;
+  border-radius: 4px;
+  background-color: black;
+  color: white;
+  text-transform: uppercase;
+  padding: 10px 60px;
+  font-weight: 500;
+  letter-spacing: 2px;
+}
+
+.submit-button-wrapper input:hover {
+  background-color: #176de6;;
+}

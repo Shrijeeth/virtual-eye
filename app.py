@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 from flask_caching import Cache
 from ibmcloudant.cloudant_v1 import CloudantV1, Document
 import hashlib
@@ -97,7 +97,7 @@ def login():
         exist, result = user_exists(email)
         if exist:
             if result[0]['password'] == password:
-                return render_template("login.html", alert_message="Login Success") # Should link to predict page
+                return redirect("/prediction")
             return render_template("login.html", alert_message="Wrong Password, Please try again")
         return render_template("login.html", alert_message="Invalid User")
     return render_template("login.html")
@@ -123,7 +123,7 @@ def register():
                 if not result:
                     result = send_registration_mail(email, username)
                 return render_template("login.html", success_message="Registration Success")
-            render_template("register.html", alert_message="Registration Failure, Please try again")
+            return render_template("register.html", alert_message="Registration Failure, Please try again")
         return render_template("register.html", alert_message="Passwords does not match")
     return render_template("register.html")
 
@@ -162,6 +162,11 @@ def forgot_password():
             return render_template("forgot_password.html", alert_message="Password Change Failed, Please try again")
         return render_template("forgot_password.html", alert_message="Passwords does not match")
     return render_template("forgot_password.html")
+
+
+@app.route("/prediction")
+def prediction():
+    return render_template("prediction.html")
 
 
 if __name__ == '__main__':

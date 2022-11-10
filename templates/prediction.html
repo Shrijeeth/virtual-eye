@@ -34,7 +34,6 @@
             </div>
         </nav>
         <div class="container">
-
             <div class="row">
                 <div class="head">
                     <h1 style="font-weight:bold">Virtual Eye- Life Guard for Swimming Pools to Detect Active Drowning</h1>
@@ -56,31 +55,20 @@
                             <div class="masthead1" style="background-image: url('../static/images/drown.png');">
                                 <div class="color-overlay d-flex justify-content-center align-items-center">
                                 </div>
-
                             </div>
-                            <div class="submit-button-wrapper1">
-                                <input type="submit" value="Click me here for prediction">
-                                <div>
-                                    {{ Prediction }}
+                            <form method="post" action="/prediction">
+                                <div class="submit-button-wrapper">
+                                    <input type="submit" value="Click me here for prediction" class="submit-button-wrapper">
+                                    <div>
+                                        {{ prediction }}
+                                    </div>
                                 </div>
-                            </div>
-
-
-
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <footer>
-            <!-- Copyright -->
-            <div class="text-center p-3 Copyright navbar-fixed-bottom">
-                Copyright © 2022. All Rights Reserved
-
-            </div>
-            <!-- Copyright -->
-        </footer>
-
     </header>
 </body>
 
