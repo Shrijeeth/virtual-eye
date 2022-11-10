@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session, url_for
 from flask_caching import Cache
 from ibmcloudant.cloudant_v1 import CloudantV1, Document
 import hashlib
@@ -97,7 +97,8 @@ def login():
         exist, result = user_exists(email)
         if exist:
             if result[0]['password'] == password:
-                return redirect("/prediction")
+                session['username'] = result[0]['username']
+                return redirect(url_for("prediction", username=session['username']))
             return render_template("login.html", alert_message="Wrong Password, Please try again")
         return render_template("login.html", alert_message="Invalid User")
     return render_template("login.html")
@@ -166,11 +167,14 @@ def forgot_password():
 
 @app.route("/prediction")
 def prediction():
-    return render_template("prediction.html")
+    if session.get('username'):
+        return render_template("prediction.html", username=session['username'])
+    return redirect("/login")
 
 
 @app.route("/logout")
 def logout():
+    session.pop('username')
     return render_template("logout.html")
 
 

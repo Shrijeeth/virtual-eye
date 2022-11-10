@@ -126,3 +126,9 @@ li a {
     margin-top: 100px;
     text-align: center;
 }
+
+.user_greeter {
+    color: rgb(125, 72, 10);
+    font-size: medium;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
