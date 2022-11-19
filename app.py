@@ -1,5 +1,5 @@
 import datetime
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, Response
 from flask_caching import Cache
 from ibmcloudant.cloudant_v1 import CloudantV1, Document
 import hashlib
@@ -12,9 +12,7 @@ import random
 import torch
 import cv2
 import time
-import numpy as np
 from playsound import playsound
-import matplotlib.pyplot as plt
 
 
 load_dotenv("./.env")
@@ -99,6 +97,72 @@ def is_above_threshold(person_bbox, center0, threshold=10):
     return False, center
 
 
+def gen_frames(src, dest):
+    webcam = cv2.VideoCapture(src)
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(dest, fourcc, 20.0, (640, 640))
+    t0 = dict()
+    isDrowning = dict()
+    center0 = dict()
+    center = dict()
+    start = time.time()
+    playFrame = 0
+    limit = 0
+    while webcam.isOpened():
+        limit = time.time() - start
+        status, frame = webcam.read()
+        if not status:
+            break
+        if frame is None:
+            continue
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = cv2.resize(frame, (640, 640))
+        persons = detect_person(frame)
+        if len(persons) == 0:
+            limit = 0
+        for ind, person in enumerate(persons):
+            person = list(map(int, person.cpu().numpy().round().tolist()))
+            t0[ind] = t0.get(ind, time.time())
+            isDrowning[ind] = isDrowning.get(ind, False)
+            center0[ind] = center0.get(ind, [0, 0])
+            bbox = person.copy()
+            x = time.time()
+            aboveThresh, center = is_above_threshold(bbox, center0[ind], threshold=30)
+            if aboveThresh:
+                t0[ind] = time.time()
+                isDrowning[ind] = False
+            else:
+                if time.time() - t0[ind] > 20:
+                    isDrowning[ind] = True
+            center0[ind] = center
+            start_point = (person[0], person[1])
+            end_point = (person[2], person[3])
+            if isDrowning[ind]:
+                color = (255, 0, 0)
+            else:
+                color = (0, 0, 255)
+            thickness = 2
+            frame = cv2.rectangle(frame, start_point, end_point, color, thickness)
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        for person_id, drown_status in isDrowning.items():
+            if drown_status:
+                try:
+                    if playFrame % 100 == 0:
+                        print(f"Drowning Detected on {datetime.datetime.now()}")
+                        playsound(os.path.dirname(__file__) + "\\static\\sounds\\alarm.mp3.wav")
+                        playFrame = 0
+                except Exception as e:
+                    continue
+                playFrame += 1
+        out.write(frame)
+        ret, buffer = cv2.imencode('.jpg', frame)
+        buffer = buffer.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + buffer + b'\r\n')
+    webcam.release()
+    out.release()
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -180,57 +244,69 @@ def forgot_password():
     return render_template("forgot_password.html")
 
 
-@app.route("/prediction", methods=["GET", "POST"])
+@app.route("/prediction")
 def prediction():
-    if request.method == "POST":
-        webcam = cv2.VideoCapture("sample_drowning.mp4")
-        if not webcam.isOpened():
-            print("Could not open webcam")
-            return redirect(url_for("login", alert_message="Webcam Not detected! Please Try after sometime"))
-        t0 = dict()
-        isDrowning = dict()
-        center0 = dict()
-        center = dict()
-        start = time.time()
-        while webcam.isOpened():
-            limit = time.time() - start
-            status, frame = webcam.read()
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame = cv2.resize(frame, (640, 640))
-            persons = detect_person(frame)
-            for ind,person in enumerate(persons):
-                person = list(map(int, person.cpu().numpy().round().tolist()))
-                if limit % 60 == 0:
-                    t0[ind] = time.time()
-                    isDrowning[ind] = False
-                    center0[ind] = [0, 0]
-                bbox = person.copy()
-                x = time.time()
-                aboveThresh, center = is_above_threshold(bbox, center0[ind])
-                if aboveThresh:
-                    t0[ind] = time.time()
-                    isDrowning[ind] = False
-                else:
-                    if time.time() - t0[ind] > 10:
-                        isDrowning[ind] = True
-                center0[ind] = center
-                start_point = (person[0], person[1])
-                end_point = (person[2], person[3])
-                if isDrowning[ind]:
-                    color = (255, 0, 0)
-                else:
-                    color = (0, 0, 255)
-                thickness = 2
-                frame = cv2.rectangle(frame, start_point, end_point, color, thickness)
-                plt.imshow(frame)
-                plt.savefig("./static/prediction/drowning.png")
-            for person_id, drown_status in isDrowning.items():
-                if drown_status:
-                    print(f"Drowning Detected on {datetime.datetime.now()}")
-                    playsound("./static/sounds/alarm.mp3.wav")
     if session.get('username'):
-        return render_template("prediction.html", username=session['username'])
+        return render_template("prediction.html", username=session['username'], video_path="main_video_feed")
     return redirect("/login")
+
+
+@app.route("/demo_1")
+def demo_1():
+    if session.get('username'):
+        return render_template("prediction.html", username=session['username'], video_path="sample_1")
+    return redirect("/login")
+
+
+@app.route("/demo_2")
+def demo_2():
+    if session.get('username'):
+        return render_template("prediction.html", username=session['username'], video_path="sample_2")
+    return redirect("/login")
+
+
+@app.route("/demo_3")
+def demo_3():
+    if session.get('username'):
+        return render_template("prediction.html", username=session['username'], video_path="sample_3")
+    return redirect("/login")
+
+
+@app.route("/demo_4")
+def demo_4():
+    if session.get('username'):
+        return render_template("prediction.html", username=session['username'], video_path="sample_4")
+    return redirect("/login")
+
+
+@app.route("/main_video_feed")
+def main_video_feed():
+    return Response(gen_frames(0, 'output.mp4'), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route("/sample_1")
+def sample_1():
+    return Response(gen_frames("sample_drowning-1.mp4", 'sample_drowning-1-output.mp4'), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route("/sample_2")
+def sample_2():
+    return Response(gen_frames("sample_drowning-2.mp4", 'sample_drowning-2-output.mp4'), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route("/sample_3")
+def sample_3():
+    return Response(gen_frames("sample_swimming-1.mp4", 'sample_swimming-1-output.mp4'), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route("/sample_4")
+def sample_4():
+    return Response(gen_frames("sample_swimming-2.mp4", 'sample_swimming-2-output.mp4'), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route("/demo")
+def demo():
+    return render_template("demo.html")
 
 
 @app.route("/logout")
@@ -240,4 +316,4 @@ def logout():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')

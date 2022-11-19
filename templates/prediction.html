@@ -28,6 +28,7 @@
                 <div class="collapse navbar-collapse" id="micon">
                     <ul class="nav navbar-nav navbar-right">
                         <li><a href="/">Home</a></li>
+                        <li><a href="/demo">Demo</a></li>
                         <li><a href="/logout">Logout</a></li>
                     </ul>
                 </div>
@@ -58,18 +59,10 @@
                     <div class="col-lg-6">
                         <div class="text1">
                             <div class="masthead1">
-                                <img src="../static/prediction/drowning.png" alt="Live Data will be displayed here">
+                                <img src="/{{ video_path }}" alt="Live Data will be displayed here" width="400" height="400">
                                 <div class="color-overlay d-flex justify-content-center align-items-center">
                                 </div>
                             </div>
-                            <form method="post" action="/prediction">
-                                <div style="padding: 50px;">
-                                    <input type="submit" value="Click me here for prediction" class="submit-button-wrapper1">
-                                    <div>
-                                        {{ prediction }}
-                                    </div>
-                                </div>
-                            </form>
                         </div>
                     </div>
                 </div>
