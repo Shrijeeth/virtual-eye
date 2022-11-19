@@ -9,7 +9,7 @@ By studying body movement patterns and connecting cameras to artificial intellig
 ## Prerequisites
 
 - Python 3.7 +
-- CUDA 11.7
+- CUDA 11.7 (Optional)
 - IBM Cloudant DB Service
 - Send Grid Email API
 
